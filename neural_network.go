@@ -16,23 +16,23 @@ func (nn *neuralNet) initWeights() {
 
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
-			nn.wHidden.Set(i, j, rand.Float64())
+			nn.wHidden.Set(i, j, rand.Float64()*2-1)
 		}
 	}
 
 	for i := 0; i < n; i++ {
-		nn.bHidden.Set(i, 0, rand.Float64())
+		nn.bHidden.Set(i, 0, rand.Float64()*2-1)
 	}
 
 	n, m = nn.wOut.Dims()
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
-			nn.wOut.Set(i, j, rand.Float64())
+			nn.wOut.Set(i, j, rand.Float64()*2-1)
 		}
 	}
 
 	for i := 0; i < n; i++ {
-		nn.bOut.Set(i, 0, rand.Float64())
+		nn.bOut.Set(i, 0, rand.Float64()*2-1)
 	}
 
 }
