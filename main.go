@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 
@@ -21,14 +20,14 @@ var classNames = []string{"Iris-setosa", "Iris-versicolor", "Iris-virginica"}
 func loadIrisCSV(path string) ([][]float64, []int, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, nil, fmt.Errorf("We couldn't open the file: %v", err)
+		return nil, nil, fmt.Errorf("could not open file: %v", err)
 	}
 	defer f.Close()
 
 	reader := csv.NewReader(f)
 	rows, err := reader.ReadAll()
 	if err != nil {
-		return nil, nil, fmt.Errorf("We couldn't read the file: %v", err)
+		return nil, nil, fmt.Errorf("could not read file: %v", err)
 	}
 
 	var data [][]float64
@@ -36,63 +35,26 @@ func loadIrisCSV(path string) ([][]float64, []int, error) {
 
 	for _, row := range rows {
 		if len(row) != 5 {
-			return nil, nil, fmt.Errorf("Expected 5 columns, got %d", len(row))
+			return nil, nil, fmt.Errorf("expected 5 columns, got %d", len(row))
 		}
 		features := make([]float64, 4)
 		for j := 0; j < 4; j++ {
 			v, err := strconv.ParseFloat(row[j], 64)
 			if err != nil {
-				return nil, nil, fmt.Errorf("Expected numeric value, got %q", row[j])
+				return nil, nil, fmt.Errorf("expected numeric value, got %q", row[j])
 			}
 			features[j] = v
 		}
 		className := row[4]
 		idx, ok := classIndex[className]
 		if !ok {
-			return nil, nil, fmt.Errorf("Unknown class name: %q", className)
+			return nil, nil, fmt.Errorf("unknown class name: %q", className)
 		}
 		data = append(data, features)
 		labels = append(labels, idx)
 	}
 
 	return data, labels, nil
-}
-
-func normalize(data [][]float64) [][]float64 {
-	n := len(data)
-	if n == 0 {
-		return data
-	}
-	cols := len(data[0])
-	mins := make([]float64, cols)
-	maxs := make([]float64, cols)
-	for j := 0; j < cols; j++ {
-		mins[j] = math.MaxFloat64
-		maxs[j] = -math.MaxFloat64
-	}
-	for _, row := range data {
-		for j, v := range row {
-			if v < mins[j] {
-				mins[j] = v
-			}
-			if v > maxs[j] {
-				maxs[j] = v
-			}
-		}
-	}
-	result := make([][]float64, n)
-	for i, row := range data {
-		result[i] = make([]float64, cols)
-		for j, v := range row {
-			r := maxs[j] - mins[j]
-			if r == 0 {
-				result[i][j] = 0
-			} else {
-				result[i][j] = (v - mins[j]) / r
-			}
-		}
-	}
-	return result
 }
 
 func buildMatrices(data [][]float64, labels []int, numClasses int) (*mat.Dense, *mat.Dense) {
@@ -147,17 +109,17 @@ func main() {
 
 	nn := newNetwork(config)
 
-	fmt.Println("=== Neural network - Iris dataset ===")
-	fmt.Printf("Examples          : %d\n", len(data))
-	fmt.Printf("Features         : %d\n", config.inputNeurons)
-	fmt.Printf("Hidden neurons  : %d\n", config.hiddenNeurons)
-	fmt.Printf("Classes            : %d\n", config.outputNeurons)
-	fmt.Printf("Epoch            : %d\n", config.numEpochs)
-	fmt.Printf("Learning rate : %.3f\n\n", config.learningRate)
+	fmt.Println("=== Neural Network - Iris Dataset ===")
+	fmt.Printf("Examples       : %d\n", len(data))
+	fmt.Printf("Features       : %d\n", config.inputNeurons)
+	fmt.Printf("Hidden neurons : %d\n", config.hiddenNeurons)
+	fmt.Printf("Classes        : %d\n", config.outputNeurons)
+	fmt.Printf("Epochs         : %d\n", config.numEpochs)
+	fmt.Printf("Learning rate  : %.3f\n\n", config.learningRate)
 
 	fmt.Println("Training...")
 	nn.train(xTrain, yTrain)
-	fmt.Println("Training done!\n")
+	fmt.Println("Training complete!\n")
 
 	predictions := nn.predict(xTrain)
 	_, numSamples := predictions.Dims()
@@ -182,9 +144,9 @@ func main() {
 	}
 
 	accuracy := float64(correct) / float64(numSamples) * 100.0
-	fmt.Printf("Acuratețe: %d/%d (%.1f%%)\n\n", correct, numSamples, accuracy)
+	fmt.Printf("Accuracy: %d/%d (%.1f%%)\n\n", correct, numSamples, accuracy)
 
-	fmt.Println("Matrice de confuzie (rând=actual, coloană=prezis):")
+	fmt.Println("Confusion matrix (rows=actual, cols=predicted):")
 	fmt.Printf("%-20s", "")
 	for _, name := range classNames {
 		fmt.Printf("%-20s", name)
@@ -198,7 +160,7 @@ func main() {
 		fmt.Println()
 	}
 
-	fmt.Println("\n--- Exemple individuale (primele 5 din fiecare clasă) ---")
+	fmt.Println("\n--- Individual examples (first 5 per class) ---")
 	shown := map[int]int{}
 	for j := 0; j < numSamples; j++ {
 		actual := labels[j]
@@ -214,7 +176,7 @@ func main() {
 		if predicted != actual {
 			status = "✗"
 		}
-		fmt.Printf("[%s] #%3d | Actual: %-18s | Prezis: %-18s | Scoruri: [%.3f, %.3f, %.3f]\n",
+		fmt.Printf("[%s] #%3d | Actual: %-18s | Predicted: %-18s | Scores: [%.3f, %.3f, %.3f]\n",
 			status, j,
 			classNames[actual], classNames[predicted],
 			col[0], col[1], col[2],
